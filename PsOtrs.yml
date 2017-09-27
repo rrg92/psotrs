@@ -1,0 +1,58 @@
+---
+Debugger:
+  DebugThreshold: debug
+  TestMode: '0'
+Description: ''
+FrameworkVersion: 5.0.10
+Provider:
+  Operation:
+    CreateSession:
+      Description: ''
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Session::SessionCreate
+    CreateTicket:
+      Description: ''
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketCreate
+    GetTicket:
+      Description: ''
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketGet
+    SearchTicket:
+      Description: ''
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketSearch
+  Transport:
+    Config:
+      KeepAlive: ''
+      MaxLength: '102400'
+      RouteOperationMapping:
+        CreateSession:
+          RequestMethod:
+          - GET
+          - POST
+          Route: /CreateSession
+        CreateTicket:
+          RequestMethod:
+          - GET
+          - POST
+          Route: /CreateTicket
+        GetTicket:
+          RequestMethod:
+          - GET
+          - POST
+          Route: /GetTicket
+        SearchTicket:
+          RequestMethod:
+          - GET
+          - POST
+          Route: /SearchTicket
+    Type: HTTP::REST
+RemoteSystem: ''
+Requester:
+  Transport:
+    Type: ''

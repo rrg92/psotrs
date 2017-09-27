@@ -113,8 +113,10 @@ $ErrorActionPreference = "Stop";
 		param($Response)
 		
 		#Converts the response to a object.
+		write-verbose "$($MyInvocation.InvocationName): Converting from JSON!"
 		$ResponseO = Otrs_ConvertFromJson $Response;
 		
+		write-verbose "$($MyInvocation.InvocationName): Checking properties of converted result!"
 		#Check outputs
 		if($ResponseO.Error -ne $null){
 			$ResponseError = $ResponseO.Error;
@@ -127,15 +129,21 @@ $ErrorActionPreference = "Stop";
 		
 		
 		#If not error, then return response result.
-		return New-Object PsObject -Prop $ResponseO;
+		if($ResponseO -is [hashtable]){
+			return (New-Object PsObject -Prop $ResponseO);
+		} else {
+			return $ResponseO;
+		}
 	}
 
 	#Converts objets to JSON and vice versa,
 	Function Otrs_ConvertToJson($o) {
 		
 		if(Get-Command ConvertTo-Json -EA "SilentlyContinue"){
+			write-verbose "$($MyInvocation.InvocationName): Using ConvertTo-Json"
 			return Otrs_EscapeNonUnicodeJson(ConvertTo-Json $o);
 		} else {
+			write-verbose "$($MyInvocation.InvocationName): Using javascriptSerializer"
 			Otrs_LoadJsonEngine
 			$jo=new-object system.web.script.serialization.javascriptSerializer
 			$jo.maxJsonLength=[int32]::maxvalue;
@@ -146,8 +154,10 @@ $ErrorActionPreference = "Stop";
 	Function Otrs_ConvertFromJson([string]$json) {
 	
 		if(Get-Command ConvertFrom-Json  -EA "SilentlyContinue"){
+			write-verbose "$($MyInvocation.InvocationName): Using ConvertFrom-Json"
 			ConvertFrom-Json $json;
 		} else {
+			write-verbose "$($MyInvocation.InvocationName): Using javascriptSerializer"
 			Otrs_LoadJsonEngine
 			$jo=new-object system.web.script.serialization.javascriptSerializer
 			$jo.maxJsonLength=[int32]::maxvalue;
@@ -178,6 +188,7 @@ $ErrorActionPreference = "Stop";
 
 		if(!(Otrs_CheckAssembly $Engine)){
 			try {
+				write-verbose "$($MyInvocation.InvocationName): Loading JSON engine!"
 				Add-Type -Assembly  $Engine
 				$Global:PsOtrs_Loaded = $true;
 			} catch {
@@ -214,9 +225,20 @@ $ErrorActionPreference = "Stop";
 	
 	Function New-OtrsSession {
 		[CmdLetBinding()]
-		param($User,$Password, $Url, $WebService = $null)
+		param(
+			$User
+			,$Password
+			,$Url
+			,$WebService = $null
+			,[switch]$NoNph = $false
+		)
 		
 		$MethodName = 'CreateSession'
+		
+		if(!$NoNph){
+			$Url += '/nph-genericinterface.pl'
+		}
+		
 		
 		if($WebService){
 			$Url += "/Webservice/$Webservice"
@@ -226,6 +248,7 @@ $ErrorActionPreference = "Stop";
 		
 		$ResponseString = Otrs_CallUrl -data @{UserLogin=$User;Password=$Password} -url $Url2Call
 		
+		write-verbose "$($MyInvocation.InvocationName): Response received. Parsing result string!"
 		return (Otrs_TranslateResponseJson $ResponseString)
 	}
 
@@ -328,6 +351,11 @@ $ErrorActionPreference = "Stop";
 		[CmdLetBinding()]
 		param($Url, $User, $Password, $WebService, [switch]$Force)
 		
+		
+		if(!$WebService){
+			throw "PSOTRS_INVALID_WEBSERVICE";
+		}
+		
 		#Gets a session from cache!
 		$AllSessions 	= $Global:PSOtrs_Storage.SESSIONS
 		
@@ -336,6 +364,7 @@ $ErrorActionPreference = "Stop";
 			$User	= $Creds.GetNetworkCredential().UserName
 			$Password	= $Creds.GetNetworkCredential().Password
 		}
+		
 		
 		#Find a session with same name and url!
 		$Session = $AllSessions | ? {  $_.Url -eq $Url -and $_.User -eq $User };
@@ -359,7 +388,7 @@ $ErrorActionPreference = "Stop";
 	
 		
 		#Authenticates!
-		$Session.SessionID = (New-OtrsSession -User $Session.User -Password $Password -Url $Session.RestUrl).SessionID
+		$Session.SessionID = (New-OtrsSession -User $Session.User -Password $Password -Url $Session.RestUrl -NoNph).SessionID
 		
 		if($IsNewSession){
 			write-verbose "$($MyInvocation.InvocationName): Inserting on sessions cache"
