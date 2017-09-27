@@ -322,9 +322,6 @@ $ErrorActionPreference = "Stop";
 			
 			,#Specify same set of aceptable parameters
 				[hashtable]$Attributes = @{}
-				
-			,#Finds the tickets using Get-OtrsTicket cmdlet!
-				[switch]$GetTicket = $false
 		)
 		
 		$MethodName = 'CreateTicket'
@@ -344,6 +341,33 @@ $ErrorActionPreference = "Stop";
 		
 	}
 
+	Function Update-OtrsTicket {
+		[CmdLetBinding()]
+		param(
+			$Session = (Get-DefaultOtrsSession)
+			
+			,#Specify same set of aceptable parameters
+				[hashtable]$Attributes = @{}
+		)
+		
+		$MethodName = 'UpdateTicket'
+		$Url2Call 	=  "$($Session.RestUrl)/$MethodName"
+		
+		$MethodParams = @{
+			SessionID=$Session.SessionId
+		}
+		
+		$MethodParams += $Attributes;
+		
+		$ResponseString = Otrs_CallUrl -url $Url2Call -data $MethodParams
+		$UpdateResult =  (Otrs_TranslateResponseJson $ResponseString);
+
+		
+		return $UpdateResult;
+		
+	}
+
+	
 # Facilities!	
 
 	#Authenticates in a otrs and stores in a session array!

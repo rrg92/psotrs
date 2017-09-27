@@ -26,6 +26,11 @@ Provider:
       MappingInbound: {}
       MappingOutbound: {}
       Type: Ticket::TicketSearch
+    UpdateTicket:
+      Description: ''
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketUpdate
   Transport:
     Config:
       KeepAlive: ''
@@ -51,6 +56,11 @@ Provider:
           - GET
           - POST
           Route: /SearchTicket
+        UpdateTicket:
+          RequestMethod:
+          - GET
+          - POST
+          Route: /UpdateTicket
     Type: HTTP::REST
 RemoteSystem: ''
 Requester:
