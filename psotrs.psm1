@@ -405,8 +405,9 @@ if($ResetStorage){
 		[CmdLetBinding()]
 		param(
 			#Specify same set of aceptable parameters
-				[hashtable]$Filters = @{}
+			[hashtable]$Filters = @{}
 				
+			,[switch]$Attachments = $true
 			,$Session = (Get-DefaultOtrsSession)
 		)
 		
